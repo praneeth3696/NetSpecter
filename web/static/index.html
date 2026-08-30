@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetSpecter // Cyber Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="crt-enabled">
+    <div class="crt-overlay"></div>
+    <div class="crt-scanline"></div>
+
+    <div class="app-layout">
+        <!-- TOP NAVIGATION & CONTROL BAR -->
+        <header class="cyber-header">
+            <div class="brand-box">
+                <div class="logo-symbol">⟁</div>
+                <div class="brand-text">
+                    <span class="brand-title">NETSPECTER</span>
+                    <span class="brand-version">v2.0 // MR_ROBOT.CORE</span>
+                </div>
+                <div class="system-beacon" id="systemBeacon">
+                    <span class="pulse-dot"></span>
+                    <span class="status-label" id="statusLabel">SYSTEM IDLE</span>
+                </div>
+            </div>
+
+            <!-- CAPTURE CONTROLS -->
+            <div class="control-cluster">
+                <div class="input-group">
+                    <label for="ifaceSelect">IFACE</label>
+                    <select id="ifaceSelect" class="cyber-select">
+                        <option value="">Auto-Detect Default</option>
+                    </select>
+                </div>
+
+                <div class="input-group filter-group">
+                    <label for="bpfInput">BPF FILTER</label>
+                    <input type="text" id="bpfInput" class="cyber-input" value="tcp port 80 or 21 or 23 or 25 or 110 or 143 or 6379 or 8080" placeholder="e.g. tcp port 80">
+                </div>
+
+                <div class="btn-group">
+                    <button id="btnToggleCapture" class="cyber-btn btn-primary">
+                        <span class="btn-icon">▶</span>
+                        <span class="btn-text">START SCAN</span>
+                    </button>
+                    <button id="btnSimulateModal" class="cyber-btn btn-amber">
+                        <span class="btn-icon">⚡</span>
+                        <span class="btn-text">SIMULATE</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- TOGGLES -->
+            <div class="toggle-cluster">
+                <button id="btnAudioToggle" class="cyber-toggle active" title="Toggle Terminal Audio Synth">
+                    <span>🔊 SFX</span>
+                </button>
+                <button id="btnMaskToggle" class="cyber-toggle active" title="Toggle Secret Redaction / Masking">
+                    <span>👁 MASK</span>
+                </button>
+                <button id="btnCrtToggle" class="cyber-toggle active" title="Toggle CRT Scanline Effect">
+                    <span>📺 CRT</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- TELEMETRY HUD -->
+        <section class="telemetry-hud">
+            <div class="hud-card card-cyan">
+                <div class="hud-label">PACKETS INSPECTED</div>
+                <div class="hud-value" id="hudPackets">0</div>
+                <div class="hud-foot" id="hudThroughput">0.0 pkts/sec</div>
+            </div>
+            <div class="hud-card card-red">
+                <div class="hud-label">INSECURE LEAKS DETECTED</div>
+                <div class="hud-value" id="hudLeaks">0</div>
+                <div class="hud-foot" id="hudCriticals">0 Critical Incidents</div>
+            </div>
+            <div class="hud-card card-amber">
+                <div class="hud-label">ACTIVE TCP FLOWS</div>
+                <div class="hud-value" id="hudFlows">0</div>
+                <div class="hud-foot">Stream Reassembly Buffer</div>
+            </div>
+            <div class="hud-card card-green">
+                <div class="hud-label">SCANNER STATUS</div>
+                <div class="hud-value hud-text-status" id="hudStatus">READY</div>
+                <div class="hud-foot" id="hudRuntime">Elapsed: 00:00:00</div>
+            </div>
+        </section>
+
+        <!-- MAIN VIEWPORT CONTAINER -->
+        <main class="main-viewport">
+            <!-- TAB BAR -->
+            <nav class="cyber-nav">
+                <button class="nav-tab active" data-tab="tabLive">
+                    <span class="tab-idx">[01]</span> LIVE INTERCEPT
+                    <span class="tab-badge" id="badgeLiveCount">0</span>
+                </button>
+                <button class="nav-tab" data-tab="tabPcap">
+                    <span class="tab-idx">[02]</span> PCAP FORENSICS
+                </button>
+                <button class="nav-tab" data-tab="tabFlows">
+                    <span class="tab-idx">[03]</span> TCP FLOW MATRIX
+                </button>
+                <button class="nav-tab" data-tab="tabTelemetry">
+                    <span class="tab-idx">[04]</span> ANALYTICS & MATRIX
+                </button>
+                <button class="nav-tab" data-tab="tabSimLab">
+                    <span class="tab-idx">[05]</span> LEAK LAB
+                </button>
+                <button class="nav-tab" data-tab="tabExport">
+                    <span class="tab-idx">[06]</span> EXPORT & REPORTS
+                </button>
+            </nav>
+
+            <!-- TAB 1: LIVE INTERCEPT FEED -->
+            <div class="tab-content active" id="tabLive">
+                <div class="feed-header">
+                    <div class="feed-filter-box">
+                        <span class="filter-icon">🔍</span>
+                        <input type="text" id="liveSearchInput" class="cyber-search" placeholder="Search incidents by IP, user, protocol, or token...">
+                    </div>
+                    <div class="feed-filter-buttons">
+                        <button class="filter-pill active" data-proto="ALL">ALL</button>
+                        <button class="filter-pill" data-proto="HTTP">HTTP</button>
+                        <button class="filter-pill" data-proto="FTP">FTP</button>
+                        <button class="filter-pill" data-proto="REDIS">REDIS</button>
+                        <button class="filter-pill" data-proto="MAIL">MAIL</button>
+                        <button class="filter-pill" data-proto="TOKEN">TOKEN</button>
+                    </div>
+                    <div class="feed-actions">
+                        <button id="btnClearFeed" class="cyber-btn btn-sm btn-ghost">CLEAR FEED</button>
+                    </div>
+                </div>
+
+                <div class="incident-feed-container" id="incidentFeed">
+                    <div class="empty-feed-placeholder" id="emptyFeedMsg">
+                        <div class="terminal-loader">
+                            <span class="cursor-blink">█</span> AWAITING UNENCRYPTED NETWORK TRAFFIC...
+                        </div>
+                        <p class="placeholder-sub">Click <strong>[START SCAN]</strong> or launch a synthetic attack in the <strong>[LEAK LAB]</strong> to observe real-time interception.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: PCAP FORENSICS -->
+            <div class="tab-content" id="tabPcap">
+                <div class="pcap-upload-zone" id="pcapDropZone">
+                    <div class="upload-icon">📂</div>
+                    <h3>DRAG & DROP PCAP / PCAPNG FILE HERE</h3>
+                    <p>Or click to select an offline capture file from your system for forensic audit.</p>
+                    <input type="file" id="pcapFileInput" accept=".pcap,.pcapng,.cap" style="display: none;">
+                    <button class="cyber-btn btn-primary" onclick="document.getElementById('pcapFileInput').click()">SELECT PCAP FILE</button>
+                </div>
+
+                <div id="pcapResultsContainer" class="pcap-results-box" style="display: none;">
+                    <div class="pcap-summary-bar" id="pcapSummaryBar"></div>
+                    <div class="pcap-findings-table-wrap">
+                        <table class="cyber-table" id="pcapFindingsTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Protocol</th>
+                                    <th>Severity</th>
+                                    <th>Source</th>
+                                    <th>Target</th>
+                                    <th>Identity</th>
+                                    <th>Exposed Secret</th>
+                                    <th>Confidence</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pcapTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: TCP FLOW MATRIX -->
+            <div class="tab-content" id="tabFlows">
+                <div class="flows-container">
+                    <div class="section-title-bar">
+                        <span>● ACTIVE TCP FLOWS & STREAM REASSEMBLY SESSIONS</span>
+                        <span class="refresh-indicator" id="flowCountLabel">0 active sessions</span>
+                    </div>
+                    <table class="cyber-table" id="flowsTable">
+                        <thead>
+                            <tr>
+                                <th>Directional 5-Tuple (Source ➔ Destination)</th>
+                                <th>Protocol</th>
+                                <th>Buffered Bytes</th>
+                                <th>Idle Duration</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="flowsTableBody">
+                            <tr><td colspan="5" class="text-center dim">No active TCP flows being reassembled.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 4: TELEMETRY & ANALYTICS -->
+            <div class="tab-content" id="tabTelemetry">
+                <div class="analytics-grid">
+                    <div class="cyber-card">
+                        <div class="card-head">PROTOCOL DISTRIBUTION</div>
+                        <div class="chart-container" id="protoChart">
+                            <div class="bar-row"><span class="bar-label">HTTP</span><div class="bar-track"><div class="bar-fill" id="barHTTP" style="width: 0%"></div></div><span class="bar-count" id="countHTTP">0</span></div>
+                            <div class="bar-row"><span class="bar-label">FTP</span><div class="bar-track"><div class="bar-fill bar-amber" id="barFTP" style="width: 0%"></div></div><span class="bar-count" id="countFTP">0</span></div>
+                            <div class="bar-row"><span class="bar-label">REDIS</span><div class="bar-track"><div class="bar-fill bar-red" id="barREDIS" style="width: 0%"></div></div><span class="bar-count" id="countREDIS">0</span></div>
+                            <div class="bar-row"><span class="bar-label">MAIL</span><div class="bar-track"><div class="bar-fill bar-purple" id="barMAIL" style="width: 0%"></div></div><span class="bar-count" id="countMAIL">0</span></div>
+                            <div class="bar-row"><span class="bar-label">TOKENS</span><div class="bar-track"><div class="bar-fill bar-cyan" id="barTOKEN" style="width: 0%"></div></div><span class="bar-count" id="countTOKEN">0</span></div>
+                        </div>
+                    </div>
+
+                    <div class="cyber-card">
+                        <div class="card-head">SEVERITY IMPACT PROFILE</div>
+                        <div class="severity-bars">
+                            <div class="sev-metric">
+                                <div class="sev-name text-red">CRITICAL</div>
+                                <div class="sev-num text-red" id="statCrit">0</div>
+                                <div class="sev-desc">Plaintext passwords & root keys</div>
+                            </div>
+                            <div class="sev-metric">
+                                <div class="sev-name text-amber">HIGH</div>
+                                <div class="sev-num text-amber" id="statHigh">0</div>
+                                <div class="sev-desc">Session cookies & bearer tokens</div>
+                            </div>
+                            <div class="sev-metric">
+                                <div class="sev-name text-blue">MEDIUM</div>
+                                <div class="sev-num text-blue" id="statMed">0</div>
+                                <div class="sev-desc">Trivial or low-entropy secrets</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: LEAK SIMULATION LAB -->
+            <div class="tab-content" id="tabSimLab">
+                <div class="sim-lab-container">
+                    <div class="section-title-bar">
+                        <span>⚡ NETSPECTER INSECURE TRANSMISSION SIMULATION LAB</span>
+                    </div>
+                    <p class="sim-desc">Trigger synthetic unencrypted application-layer packets directly inside the engine to test multi-protocol parsers and observe real-time terminal alerts.</p>
+                    
+                    <div class="sim-grid">
+                        <div class="sim-card">
+                            <div class="sim-badge badge-http">HTTP POST</div>
+                            <h4>Cleartext Web Form Login</h4>
+                            <p>Injects <code>username=secops_admin&password=CyberSecretP@ss2026!</code> over HTTP POST.</p>
+                            <button class="cyber-btn btn-sm btn-primary" onclick="window.NetSpecterApp.simulateLeak('http')">SIMULATE HTTP</button>
+                        </div>
+                        <div class="sim-card">
+                            <div class="sim-badge badge-ftp">FTP AUTH</div>
+                            <h4>FTP USER / PASS Command</h4>
+                            <p>Simulates command channel dialogue with <code>PASS ProductionVaultP@ssw0rd!</code>.</p>
+                            <button class="cyber-btn btn-sm btn-amber" onclick="window.NetSpecterApp.simulateLeak('ftp')">SIMULATE FTP</button>
+                        </div>
+                        <div class="sim-card">
+                            <div class="sim-badge badge-redis">REDIS</div>
+                            <h4>Redis RESP Database AUTH</h4>
+                            <p>Injects unencrypted <code>AUTH RedisClusterKey99!</code> database command.</p>
+                            <button class="cyber-btn btn-sm btn-red" onclick="window.NetSpecterApp.simulateLeak('redis')">SIMULATE REDIS</button>
+                        </div>
+                        <div class="sim-card">
+                            <div class="sim-badge badge-http">COOKIE</div>
+                            <h4>Insecure Session Cookie</h4>
+                            <p>Transmits unencrypted <code>Cookie: sessionid=e4f5a6b...</code> lacking the <code>Secure</code> flag.</p>
+                            <button class="cyber-btn btn-sm btn-cyan" onclick="window.NetSpecterApp.simulateLeak('cookie')">SIMULATE COOKIE</button>
+                        </div>
+                        <div class="sim-card">
+                            <div class="sim-badge badge-token">AWS KEY</div>
+                            <h4>Exposed Cloud Access Key</h4>
+                            <p>Transmits <code>AKIAIOSFODNN7EXAMPLE</code> in cleartext GET query string.</p>
+                            <button class="cyber-btn btn-sm btn-purple" onclick="window.NetSpecterApp.simulateLeak('aws')">SIMULATE AWS</button>
+                        </div>
+                        <div class="sim-card">
+                            <div class="sim-badge badge-token">JWT</div>
+                            <h4>Unencrypted JWT Bearer Token</h4>
+                            <p>Sends JSON Web Token with claims for <code>fsociety@protonmail.ch</code>.</p>
+                            <button class="cyber-btn btn-sm btn-primary" onclick="window.NetSpecterApp.simulateLeak('jwt')">SIMULATE JWT</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 6: EXPORT & REPORTS -->
+            <div class="tab-content" id="tabExport">
+                <div class="export-container">
+                    <div class="section-title-bar">
+                        <span>📥 EXPORT INCIDENT TELEMETRY & AUDIT REPORTS</span>
+                    </div>
+                    <div class="export-grid">
+                        <div class="export-card">
+                            <div class="exp-icon">📄</div>
+                            <h4>Executive HTML Security Report</h4>
+                            <p>Self-contained, interactive HTML audit report with remediation guidance and full finding breakdowns.</p>
+                            <a href="/api/export/html" target="_blank" class="cyber-btn btn-primary">DOWNLOAD HTML REPORT</a>
+                        </div>
+                        <div class="export-card">
+                            <div class="exp-icon">📊</div>
+                            <h4>Structured JSON Export</h4>
+                            <p>Machine-readable JSON artifact containing all 5-tuples, timestamps, and extracted secrets for SIEM pipelines.</p>
+                            <a href="/api/export/json" class="cyber-btn btn-amber">DOWNLOAD JSON</a>
+                        </div>
+                        <div class="export-card">
+                            <div class="exp-icon">📜</div>
+                            <h4>Newline JSONL Stream</h4>
+                            <p>NDJSON format optimized for ingestion into ElasticSearch, Splunk, or Datadog log agents.</p>
+                            <a href="/api/export/jsonl" class="cyber-btn btn-ghost">DOWNLOAD JSONL</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- DEEP INSPECTION DRAWER (DRAWER MODAL) -->
+        <aside class="drawer-modal" id="payloadDrawer">
+            <div class="drawer-header">
+                <div class="drawer-title">
+                    <span id="drawerBadge" class="badge">HTTP</span>
+                    <span id="drawerTitleText">INCIDENT DISSECTION</span>
+                </div>
+                <button class="drawer-close" id="btnCloseDrawer">&times;</button>
+            </div>
+            <div class="drawer-body" id="drawerBody">
+                <div class="meta-section">
+                    <div class="meta-row"><span class="meta-k">Source Host:</span><span class="meta-v" id="drSrc"></span></div>
+                    <div class="meta-row"><span class="meta-k">Target Host:</span><span class="meta-v" id="drDst"></span></div>
+                    <div class="meta-row"><span class="meta-k">Detection Type:</span><span class="meta-v text-cyan" id="drType"></span></div>
+                    <div class="meta-row"><span class="meta-k">Severity:</span><span class="meta-v" id="drSeverity"></span></div>
+                    <div class="meta-row"><span class="meta-k">Identity / User:</span><span class="meta-v text-green" id="drUser"></span></div>
+                    <div class="meta-row"><span class="meta-k">Exposed Secret:</span><span class="meta-v text-red" id="drSecret"></span></div>
+                </div>
+
+                <div class="drawer-tab-row">
+                    <button class="dtab active" data-dview="raw">RAW SNIPPET</button>
+                    <button class="dtab" data-dview="hex">HEX DUMP</button>
+                    <button class="dtab" data-dview="rem">REMEDIATION</button>
+                </div>
+
+                <div class="dview-content active" id="dviewRaw">
+                    <pre class="code-box" id="drRawSnippet"></pre>
+                </div>
+                <div class="dview-content" id="dviewHex">
+                    <pre class="code-box hex-box" id="drHexDump"></pre>
+                </div>
+                <div class="dview-content" id="dviewRem">
+                    <div class="remediation-box" id="drRemediation"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- FOOTER BAR -->
+        <footer class="cyber-footer">
+            <div class="foot-left">
+                <span>NETSPECTER // PROMISCUOUS WIRE AUDITOR</span>
+                <span class="separator">│</span>
+                <span>ENGINE: SCAPY + STREAM REASSEMBLER</span>
+            </div>
+            <div class="foot-right">
+                <span class="conn-dot connected" id="wsConnDot"></span>
+                <span id="wsConnLabel">LIVE WEBSOCKET ATTACHED</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

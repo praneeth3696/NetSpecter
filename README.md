@@ -46,10 +46,19 @@ While modern web applications strive for universal encryption, plaintext protoco
 ### 3. Advanced Engine & Forensic Capabilities
 - **TCP Stream Reassembly**: Tracks IP 5-tuples (`src_ip, src_port, dst_ip, dst_port, TCP`) and stitches fragmented segments across MTU boundaries to catch split-packet credentials.
 - **Offline PCAP / PCAPNG Analysis**: Forensic post-incident replay mode (`netspecter pcap <file>`) to audit captures without requiring raw socket access.
-- **Interactive Cyber TUI Dashboard**: Real-time Rich Live dashboard featuring packet counters, throughput rate, active flow monitor, and live incident feed.
+- **Interactive Cyber TUI Dashboard**: Real-time Rich Live terminal dashboard with packet counters and incident feed.
+- **Mr. Robot Cyber-Terminal Web UI**: Fullstack dark-theme terminal web dashboard (FastAPI + WebSockets + HTML5/CSS) with real-time incident feeds, deep payload hex dump inspection, drag-and-drop PCAP forensics, interactive telemetry charts, and a built-in attack simulation lab.
 - **Credential Redaction / Masking**: Defaults to safe masked output (`admin: s3c****t`) for live demos and recordings, with `--show-secrets` for full visibility.
 - **Enterprise Reporting**: Exports findings as structured JSON (`--json-out`) and self-contained executive HTML audit reports (`--html-out`) with remediation advisories.
 - **Full Cross-Platform Support**: Seamless operation on **Windows 11 / 10**, **Linux** (Ubuntu, Kali, Debian, Arch), and **macOS** (Darwin).
+
+---
+
+## Branches
+
+This repository maintains two official branches:
+1. **`cli`**: The pure command-line network security auditor and terminal TUI.
+2. **`frontend-backend`**: The upgraded fullstack edition featuring the asynchronous FastAPI backend and Mr. Robot Cyber-Terminal Web Dashboard.
 
 ---
 
@@ -98,11 +107,35 @@ pip install -r requirements.txt
 ## CLI Usage & Commands
 
 ```
-usage: netspecter [-h] {scan,pcap,interfaces,test} ...
+usage: netspecter [-h] {web,scan,pcap,interfaces,test} ...
 ```
 
-### 1. Live Sniffing (`scan`)
-Sniff live traffic on the default or specified interface (requires `sudo` on Linux/macOS or Administrator prompt on Windows):
+### 1. Launch Cyber-Terminal Web Dashboard (`web`)
+Launch the complete fullstack NetSpecter Web UI and API server with a single command (automatically opens your default browser at `http://127.0.0.1:8080`):
+
+```bash
+# Standard single-command launch
+python main.py web
+
+# Specify custom port and preset network interface
+python main.py web --port 8080 --iface en0
+
+# Run headless server without auto-opening browser
+python main.py web --no-browser --host 0.0.0.0 --port 8080
+```
+
+**Web UI Capabilities:**
+- **Live Intercept Feed**: Real-time WebSocket incident stream with keyword & protocol filtering.
+- **Deep Payload Inspector**: Interactive drawer with structured headers, extracted credentials, hex dump, and security remediation.
+- **Drag & Drop PCAP Forensics**: Instant offline capture parsing with multi-protocol finding tables.
+- **TCP Stream Flow Matrix**: Monitor active 5-tuple streams and buffer reassembly progress.
+- **Leak Simulation Lab**: 1-click synthetic packet injection (HTTP, FTP, Redis, Cookies, AWS, JWT) for instant live demonstration without external tools.
+- **1-Click Report Downloads**: Instant export to Executive HTML, JSON, or JSONL.
+
+---
+
+### 2. Live Terminal Sniffing (`scan`)
+Sniff live traffic directly in your terminal (requires `sudo` on Linux/macOS or Administrator prompt on Windows):
 
 **Linux / macOS:**
 ```bash
@@ -134,7 +167,7 @@ python main.py scan --iface "Wi-Fi" --dashboard
 python main.py scan --html-out report.html --json-out audit.json
 ```
 
-### 2. Offline PCAP Forensic Analysis (`pcap`)
+### 3. Offline PCAP Forensic Analysis (`pcap`)
 Analyze captured `.pcap` or `.pcapng` files without root privileges:
 
 ```bash

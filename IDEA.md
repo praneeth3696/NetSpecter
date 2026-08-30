@@ -105,11 +105,20 @@ flowchart TD
 | **Executive HTML Security Reports** | Missing | **Implemented** | `reporting/reporter.py` |
 | **JSON / JSONL SIEM Export** | Missing | **Implemented** | `reporting/reporter.py` |
 | **Host Network Interface Discovery** | Missing | **Implemented** | `main.py interfaces` |
+| **Fullstack Cyber Terminal Web UI** | Missing | **Implemented** | `web/static/` & `core/web/server.py` |
+| **Live WebSocket Telemetry Engine** | Missing | **Implemented** | `core/web/bridge.py` |
 | **Cross-Platform Compatibility** | Linux Only | **Implemented (Windows 11, Linux, macOS)** | `main.py` & `sniffer.py` |
 
 ---
 
-## 4. Future Vision & Next-Gen Roadmap (v3.0)
+## 4. Repository Branch Architecture
+
+- **`cli`**: The pure CLI & terminal TUI edition for headless servers and terminal-only audits.
+- **`frontend-backend`**: The upgraded fullstack edition featuring the asynchronous FastAPI WebSocket backend and the Mr. Robot Cyber-Terminal Web Dashboard.
+
+---
+
+## 5. Future Vision & Next-Gen Roadmap (v3.0)
 
 With the core protocol detection, stream reassembly, TUI dashboard, and reporting architecture completed in v2.0, future iterations will focus on distributed deployment, kernel acceleration, and advanced telemetry:
 

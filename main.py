@@ -177,13 +177,42 @@ def build_cli_parser() -> argparse.ArgumentParser:
         help="Path to generate executive HTML security audit report."
     )
 
-    # 3. INTERFACES: Enumerate local interfaces
+    # 3. WEB: Fullstack Cyber Terminal Web UI & API
+    web_parser = subparsers.add_parser(
+        "web",
+        help="Launch fullstack Mr. Robot Cyber-Terminal Web Dashboard (FastAPI + WebSockets)"
+    )
+    web_parser.add_argument(
+        "--host",
+        type=str,
+        default="127.0.0.1",
+        help="Host IP to bind the web server (default: 127.0.0.1)"
+    )
+    web_parser.add_argument(
+        "--port", "-p",
+        type=int,
+        default=8080,
+        help="Port to bind the web server (default: 8080)"
+    )
+    web_parser.add_argument(
+        "--iface", "-i",
+        type=str,
+        default=None,
+        help="Target interface for live capture (e.g. en0, eth0, Wi-Fi)"
+    )
+    web_parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Do not automatically open default web browser on launch"
+    )
+
+    # 4. INTERFACES: Enumerate local interfaces
     subparsers.add_parser(
         "interfaces",
         help="List available host network interfaces with IPs and MACs"
     )
 
-    # 4. TEST: Built-in verification test suite
+    # 5. TEST: Built-in verification test suite
     subparsers.add_parser(
         "test",
         help="Execute internal protocol and detector regression test suite"
@@ -197,7 +226,21 @@ def main() -> None:
     parser = build_cli_parser()
     args = parser.parse_args()
 
-    if args.command == "scan":
+    if args.command == "web":
+        print_info("Initializing NetSpecter Cyber Terminal Web UI...")
+        print_info(f"Target Binding  : [bold cyan]http://{args.host}:{args.port}[/bold cyan]")
+        if args.iface:
+            print_info(f"Preset Interface: [bold white]{args.iface}[/bold white]")
+        print_info("Press [bold yellow]Ctrl+C[/bold yellow] in this terminal to terminate server.\n")
+        from core.web.server import start_web_server
+        start_web_server(
+            host=args.host,
+            port=args.port,
+            open_browser=not args.no_browser,
+            iface=args.iface
+        )
+
+    elif args.command == "scan":
         check_root_privileges()
         start_sniffing(
             iface=args.iface,
