@@ -1,0 +1,103 @@
+[
+  {
+    "timestamp": 1788081705.874007,
+    "protocol": "HTTP",
+    "type": "form",
+    "src": "10.0.0.15:51234",
+    "dst": "198.51.100.2:80",
+    "src_ip": "10.0.0.15",
+    "dst_ip": "198.51.100.2",
+    "src_port": 51234,
+    "dst_port": 80,
+    "username": "admin",
+    "password": "C****************!",
+    "token": "",
+    "confidence": "high",
+    "severity": "CRITICAL",
+    "raw_snippet": "username=admin&password=CompanySecret2026!",
+    "metadata": {
+      "source": "http_credential_detector"
+    }
+  },
+  {
+    "timestamp": 1788081705.875207,
+    "protocol": "FTP",
+    "type": "ftp_credentials",
+    "src": "10.0.0.22:48922",
+    "dst": "198.51.100.20:21",
+    "src_ip": "10.0.0.22",
+    "dst_ip": "198.51.100.20",
+    "src_port": 48922,
+    "dst_port": 21,
+    "username": "backup_service",
+    "password": "B********************!",
+    "token": "",
+    "confidence": "high",
+    "severity": "CRITICAL",
+    "raw_snippet": "PASS BackupStorageP@ssw0rd!",
+    "metadata": {
+      "command": "PASS"
+    }
+  },
+  {
+    "timestamp": 1788081705.8763468,
+    "protocol": "REDIS",
+    "type": "redis_auth",
+    "src": "10.0.0.30:61000",
+    "dst": "10.0.0.200:6379",
+    "src_ip": "10.0.0.30",
+    "dst_ip": "10.0.0.200",
+    "src_port": 61000,
+    "dst_port": 6379,
+    "username": "",
+    "password": "R**************!",
+    "token": "",
+    "confidence": "high",
+    "severity": "CRITICAL",
+    "raw_snippet": "AUTH\r\n\r\nRedisClusterKey!",
+    "metadata": {
+      "mode": "inline"
+    }
+  },
+  {
+    "timestamp": 1788081705.8772,
+    "protocol": "HTTP",
+    "type": "cookie_leak",
+    "src": "10.0.0.45:52110",
+    "dst": "198.51.100.5:8080",
+    "src_ip": "10.0.0.45",
+    "dst_ip": "198.51.100.5",
+    "src_port": 52110,
+    "dst_port": 8080,
+    "username": "sessionid",
+    "password": "a******************************6",
+    "token": "",
+    "confidence": "high",
+    "severity": "CRITICAL",
+    "raw_snippet": "1.1\r\nHost: api.internal.corp\r\nCookie: sessionid=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6;\r\n\r\n",
+    "metadata": {
+      "source": "http_credential_detector"
+    }
+  },
+  {
+    "timestamp": 1788081705.878175,
+    "protocol": "TOKEN",
+    "type": "aws_key",
+    "src": "10.0.0.88:54321",
+    "dst": "198.51.100.50:80",
+    "src_ip": "10.0.0.88",
+    "dst_ip": "198.51.100.50",
+    "src_port": 54321,
+    "dst_port": 80,
+    "username": "",
+    "password": "A******************E",
+    "token": "A******************E",
+    "confidence": "high",
+    "severity": "CRITICAL",
+    "raw_snippet": "GET /status?aws_key=AKIAIOSFODNN7EXAMPLE HTTP/1.1\r\nHost: dev-ops.",
+    "metadata": {
+      "description": "AWS Access Key ID exposed in cleartext",
+      "type": "AWS_KEY"
+    }
+  }
+]

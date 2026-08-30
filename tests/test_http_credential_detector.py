@@ -18,6 +18,9 @@ from detectors.http_credential_detector import (
 # ---------------------------------------------------------------------------
 # ANSI helpers for standalone run
 # ---------------------------------------------------------------------------
+if os.name == "nt":
+    os.system("")
+
 GREEN  = "\033[92m"
 RED    = "\033[91m"
 YELLOW = "\033[93m"

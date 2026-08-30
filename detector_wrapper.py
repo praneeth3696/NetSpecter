@@ -1,27 +1,41 @@
-from detectors.http_credential_detector import detect_http_credentials
+"""
+NetSpecter Detector Wrapper
+===========================
+Bridge between low-level packet capture bytes and higher-order protocol detection engines.
+"""
 
-_FAST_KEYWORDS: list[bytes] = [b"user", b"pass", b"login", b"auth", b"token"]
+from __future__ import annotations
+from typing import Optional, Union
+from core.models import DetectionResult
+from core.detector_engine import DetectorEngine
 
-def process_payload(payload_bytes: bytes) -> dict | None:
-    """Fast bytes filter and decoder bridge to the core detector API."""
-    if not payload_bytes:
+_engine = DetectorEngine()
+
+
+def process_payload(
+    payload_bytes: bytes,
+    src_ip: str = "0.0.0.0",
+    dst_ip: str = "0.0.0.0",
+    src_port: int = 0,
+    dst_port: int = 0,
+    as_result_object: bool = False
+) -> Union[dict, DetectionResult, None]:
+    """
+    Fast bytes filter and decoder bridge.
+    Returns:
+        DetectionResult if as_result_object is True, else legacy dict (or None).
+    """
+    res = _engine.inspect_payload(
+        payload_bytes=payload_bytes,
+        src_ip=src_ip,
+        dst_ip=dst_ip,
+        src_port=src_port,
+        dst_port=dst_port
+    )
+    if not res:
         return None
 
-    lower_bytes = payload_bytes.lower()
+    if as_result_object:
+        return res
 
-    # Pre-flight check: return instantly if no keyword is present
-    match_found = False
-    for kw in _FAST_KEYWORDS:
-        if kw in lower_bytes:
-            match_found = True
-            break
-            
-    if not match_found:
-        return None
-
-    try:
-        payload_str = payload_bytes.decode('utf-8', errors='ignore')
-    except Exception:
-        return None
-
-    return detect_http_credentials(payload_str)
+    return res.to_dict()

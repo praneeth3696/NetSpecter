@@ -92,6 +92,12 @@ _RE_MULTIPART_BOUNDARY = re.compile(
     re.IGNORECASE,
 )
 
+# Insecure session cookies in HTTP headers
+_RE_COOKIE_AUTH = re.compile(
+    r"(?:Cookie|Set-Cookie)\s*:[^\r\n]*\b(phpsessid|jsessionid|sessionid|session_id|connect\.sid|auth_token|jwt)=([A-Za-z0-9\-_%~.]{16,})",
+    re.IGNORECASE,
+)
+
 # Detect if payload looks like a raw HTTP message (has verb + protocol line)
 _RE_HTTP_REQUEST_LINE = re.compile(
     r"^(GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD)\s+\S+\s+HTTP/\d",
@@ -389,6 +395,28 @@ def _detect_header_token(payload: str) -> Optional[dict]:
     }
 
 
+# ── 4e2. Session Cookie Leakage ─────────────────────────────────────────────
+
+def _detect_cookie(payload: str) -> Optional[dict]:
+    """
+    Detects sensitive session tokens transmitted in plaintext Cookie / Set-Cookie headers.
+    """
+    m = _RE_COOKIE_AUTH.search(payload)
+    if not m:
+        return None
+
+    cookie_name = m.group(1)
+    cookie_val = m.group(2)
+
+    return {
+        "type"       : "cookie_leak",
+        "username"   : cookie_name,
+        "password"   : cookie_val,
+        "confidence" : "high",
+        "raw_snippet": _snippet(payload, m),
+    }
+
+
 # ── 4f. URL user-info credentials ───────────────────────────────────────────
 
 def _detect_url_userinfo(payload: str) -> Optional[dict]:
@@ -509,6 +537,8 @@ def _quick_scan(payload: str) -> bool:
     lower = payload.lower()
     if "authorization" in lower:
         return True
+    if "cookie" in lower:
+        return True
     # URL userinfo:  http(s)://something:something@
     if "://" in lower and "@" in lower:
         return True
@@ -556,6 +586,7 @@ def detect_http_credentials(payload: str) -> dict | None:
     detectors = [
         _detect_header_basic,
         _detect_header_token,
+        _detect_cookie,
         _detect_url_userinfo,
         _detect_json,
         _detect_form_urlencoded,
@@ -594,6 +625,7 @@ def detect_all_http_credentials(payload: str) -> list[dict]:
     detectors = [
         _detect_header_basic,
         _detect_header_token,
+        _detect_cookie,
         _detect_url_userinfo,
         _detect_json,
         _detect_form_urlencoded,
